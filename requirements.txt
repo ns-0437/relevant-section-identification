@@ -1,0 +1,64 @@
+# ---------------------------------------------------------------------------
+# PDF partitioning (hi_res strategy: layout model + table structure inference)
+# ---------------------------------------------------------------------------
+unstructured[pdf]>=0.15.0
+unstructured-inference>=0.7.36
+pdf2image>=1.17.0          # needs the poppler binaries (see SETUP.md)
+pikepdf>=9.0.0
+pypdf>=4.2.0
+
+# ---------------------------------------------------------------------------
+# Local captioning: LLaVA via transformers
+# ---------------------------------------------------------------------------
+# Install torch FIRST and separately if you want CUDA -- see SETUP.md.
+torch>=2.2.0
+transformers>=4.44.0       # >=4.44 for processor.apply_chat_template on LLaVA
+accelerate>=0.30.0         # required for device_map="auto"
+sentencepiece>=0.2.0
+protobuf>=4.25.0
+safetensors>=0.4.3
+
+# Optional: 4-bit quantized LLaVA (--load-in-4bit). CUDA only.
+# bitsandbytes>=0.43.0
+
+# ---------------------------------------------------------------------------
+# OCR + keyword extraction
+# ---------------------------------------------------------------------------
+pytesseract>=0.3.10        # needs the tesseract binary (see SETUP.md)
+pillow>=10.3.0
+nltk>=3.8.1                # stopwords corpus; falls back to a built-in list
+
+# ---------------------------------------------------------------------------
+# Table HTML -> markdown
+# ---------------------------------------------------------------------------
+beautifulsoup4>=4.12.3
+lxml>=5.2.0
+
+# ---------------------------------------------------------------------------
+# Table extraction from the PDF text layer (much better than OCR on digital PDFs)
+# ---------------------------------------------------------------------------
+pdfplumber>=0.11.0
+
+# ---------------------------------------------------------------------------
+# Embedding + vector store (embed_index.py)
+# ---------------------------------------------------------------------------
+# EmbeddingGemma needs sentence-transformers >=5.0 and transformers >=4.56.
+# The model is gated: accept the licence at
+# https://huggingface.co/google/embeddinggemma-300m then `hf auth login`.
+sentence-transformers>=5.0.0
+chromadb>=1.0.0
+
+# ---------------------------------------------------------------------------
+# Retrieval + evaluation
+# ---------------------------------------------------------------------------
+rank-bm25>=0.2.2           # sparse half of the hybrid retriever
+PyYAML>=6.0                # eval_gold.yaml
+
+# ---------------------------------------------------------------------------
+# Web app (app/)
+# ---------------------------------------------------------------------------
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9    # PDF upload
+# The bonus chat answers with Qwen/Qwen2.5-1.5B-Instruct, pulled at runtime by
+# transformers -- no extra dependency, no API key.

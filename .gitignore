@@ -1,0 +1,23 @@
+# envs
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# runtime data: uploaded PDFs and their derived indexes
+app_data/
+
+# hi_res partition cache — machine- and version-specific pickles
+.cache/
+
+# large generated artefacts (regenerate with the commands in README.md)
+CHUNKS.pdf
+sample_full.json
+sample_textonly.json
+chroma_dryrun/
+
+# local scratch
+*.log
+.DS_Store
+Thumbs.db
