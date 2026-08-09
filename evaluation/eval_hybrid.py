@@ -7,9 +7,14 @@ Compare vector-only, BM25-only and hybrid retrieval on the labelled query set.
 
 from __future__ import annotations
 
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import argparse
 
-from eval_retrieval import CASES
+from evaluation.eval_retrieval import CASES
 from hybrid_search import HybridRetriever, DEFAULT_ALPHA
 
 

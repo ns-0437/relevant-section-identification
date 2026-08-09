@@ -13,18 +13,13 @@ app_data/
 chroma_dryrun/
 
 # evaluation + reporting material: not needed to serve requests
-eval_*.py
-eval_gold.yaml
-hyde.py
-hyde_cache.json
-metadata_search.py
-rerank_search.py
+evaluation/
+experiments/
+docs/
 tests/
 *.pdf
 !data/sample.pdf
 CHUNKS.pdf
-REPORT.md
-REPORT.pdf
 sample_full.json
 sample_v2.json
 sample_textonly.json

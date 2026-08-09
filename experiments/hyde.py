@@ -16,6 +16,11 @@ sweep does not regenerate them.
 
 from __future__ import annotations
 
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import argparse
 import hashlib
 import json
@@ -43,14 +48,15 @@ USER_TMPL = (
 
 class HydeGenerator:
     def __init__(self, model_name: str = DEFAULT_LLM, device: Optional[str] = None,
-                 cache_path: str = "hyde_cache.json", max_new_tokens: int = 130) -> None:
+                 cache_path: str = "", max_new_tokens: int = 130) -> None:
         self.model_name = model_name
         self.device = device
         self.max_new_tokens = max_new_tokens
-        self.cache_path = cache_path
+        self.cache_path = cache_path or os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "hyde_cache.json")
         self.cache: dict[str, str] = {}
-        if os.path.exists(cache_path):
-            with open(cache_path, encoding="utf-8") as fh:
+        if os.path.exists(self.cache_path):
+            with open(self.cache_path, encoding="utf-8") as fh:
                 self.cache = json.load(fh)
         self._model = None
         self._tok = None

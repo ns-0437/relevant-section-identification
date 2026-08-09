@@ -599,7 +599,7 @@ python hybrid_search.py "what does the STAT pin indicate?" --alpha 0.6 -k 5
 ```
 
 ```bash
-python eval_v2.py --collection max77751_v2 --by-kind
+python -m evaluation.eval_v2 --collection max77751_v2 --by-kind
 ```
 
 Boilerplate stripping and text-layer tables are on by default; `--keep-boilerplate`
@@ -615,9 +615,9 @@ and `--tables-from ocr` reproduce the v1 behaviour for comparison.
 | `embed_index.py` | Embed with EmbeddingGemma → ChromaDB |
 | `query_index.py` | Dense-only query (applies the query prompt) |
 | `hybrid_search.py` | Dense + BM25 fusion, min-max normalised |
-| `eval_gold.yaml` | 45 graded queries, 12 held out |
-| `eval_v2.py` | hit@k / R@k / nDCG@5, split by kind and by holdout |
-| `requirements.txt`, `SETUP.md` | Dependencies and setup |
+| `evaluation/eval_gold.yaml` | 45 graded queries, 12 held out |
+| `evaluation/eval_v2.py` | hit@k / R@k / nDCG@5, split by kind and by holdout |
+| `requirements.txt`, `docs/SETUP.md` | Dependencies and setup |
 | `sample_full.json` / `sample_v2.json` | v1 / v2 chunks |
 | `chroma/` | Persistent vector store (`max77751`, `max77751_v2`) |
 

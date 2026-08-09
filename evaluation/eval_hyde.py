@@ -18,12 +18,17 @@ beta = 0 reproduces the hybrid baseline; beta = 1 is HyDE-dense only.
 
 from __future__ import annotations
 
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import argparse
 from collections import defaultdict
 
-from eval_v2 import load_gold, ranked_pages, ndcg_at
+from evaluation.eval_v2 import load_gold, ranked_pages, ndcg_at
 from hybrid_search import HybridRetriever, minmax, DEFAULT_ALPHA
-from hyde import HydeGenerator, DEFAULT_LLM
+from experiments.hyde import HydeGenerator, DEFAULT_LLM
 
 
 def evaluate(r, gen, queries, alpha, beta, ks=(1, 3, 5, 10), pool=40):

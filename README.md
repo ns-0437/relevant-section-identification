@@ -63,7 +63,7 @@ to anchor it — added another 0.018 and fixed figure-heavy pages outright.
 
 - **OCR silently destroying table content** — the hardest failure to see, because
   retrieval looked merely mediocre rather than broken until the missing token was
-  traced (§4.2 of `REPORT.md`).
+  traced (§4.2 of `docs/REPORT.md`).
 - **Boilerplate as an active correctness problem**, not cosmetic.
 - **Hallucinated figure captions.** A 0.5B captioner is what 4 GB of VRAM allows,
   and it invents content. Mitigated by demoting the generated caption beneath
@@ -73,7 +73,7 @@ to anchor it — added another 0.018 and fixed figure-heavy pages outright.
   (−0.001, tested on two index builds). All three only reweight signal already
   present; the wins all came from repairing what the index contained.
 
-Full numbers, method and limitations: **`REPORT.md`**.
+Full numbers, method and limitations: **`docs/REPORT.md`**.
 
 ---
 
@@ -99,7 +99,7 @@ batteries."*
 ### 1. System binaries
 
 `tesseract` (figure OCR) and `poppler` (PDF rasterisation) must be on `PATH`.
-See `SETUP.md` for per-OS instructions — the app locates Tesseract automatically
+See `docs/SETUP.md` for per-OS instructions — the app locates Tesseract automatically
 on Windows if it is installed but not on `PATH`.
 
 ### 2. Python
@@ -109,7 +109,7 @@ python -m venv .venv && .venv\Scripts\activate
 ```
 
 GPU users: install a CUDA torch build **before** the rest, pinning the exact
-variant (see `SETUP.md` — `pip install --upgrade` silently no-ops here).
+variant (see `docs/SETUP.md` — `pip install --upgrade` silently no-ops here).
 
 ```bash
 pip install -r requirements.txt
@@ -167,7 +167,7 @@ python hybrid_search.py "what does the STAT pin indicate?" --alpha 0.6
 ```
 
 ```bash
-python eval_v2.py --collection max77751_v3 --by-kind
+python -m evaluation.eval_v2 --collection max77751_v3 --by-kind
 ```
 
 ---
@@ -229,6 +229,8 @@ gcloud artifacts repositories delete cloud-run-source-deploy --location us-centr
 | `pdf_chunker.py` | PDF → text/table/figure chunks |
 | `embed_index.py` | embed → ChromaDB |
 | `hybrid_search.py`, `section_search.py` | retrieval |
-| `hyde.py`, `metadata_search.py`, `rerank_search.py` | rejected experiments, kept for reproducibility |
-| `eval_gold.yaml`, `eval_v2.py` | evaluation set and harness |
-| `REPORT.md` | full technical report |
+| `experiments/` | HyDE, metadata channel, cross-encoder rerank — measured and rejected |
+| `evaluation/` | 45-query graded gold set and the scoring harness |
+| `tests/` | model-free unit tests, run by CI on every push |
+| `docs/REPORT.md` | full technical report |
+| `docs/SETUP.md` | system binaries, CUDA wheels, model access |

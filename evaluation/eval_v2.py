@@ -20,6 +20,11 @@ inspected while choosing anything.
 
 from __future__ import annotations
 
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import argparse
 import math
 from collections import defaultdict
@@ -29,7 +34,8 @@ import yaml
 from hybrid_search import HybridRetriever, DEFAULT_ALPHA
 
 
-def load_gold(path="eval_gold.yaml"):
+def load_gold(path=None):
+    path = path or os.path.join(os.path.dirname(os.path.abspath(__file__)), "eval_gold.yaml")
     with open(path, encoding="utf-8") as fh:
         data = yaml.safe_load(fh)
     return data["queries"]
@@ -87,7 +93,7 @@ def main() -> None:
     ap.add_argument("--db", default="./chroma")
     ap.add_argument("--collection", default="max77751")
     ap.add_argument("--device", default="cuda")
-    ap.add_argument("--gold", default="eval_gold.yaml")
+    ap.add_argument("--gold", default=None)
     ap.add_argument("--alpha", type=float, default=DEFAULT_ALPHA)
     ap.add_argument("--sweep", action="store_true")
     ap.add_argument("--by-kind", action="store_true")

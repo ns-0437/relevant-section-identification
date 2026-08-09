@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import argparse
 from collections import defaultdict
 
-from eval_v2 import load_gold, ndcg_at
-from rerank_search import RerankRetriever, DEFAULT_POOL_PAGES
+from evaluation.eval_v2 import load_gold, ndcg_at
+from experiments.rerank_search import RerankRetriever, DEFAULT_POOL_PAGES
 
 
 def evaluate(r, queries, pool_pages, rerank, blend, ks=(1, 3, 5, 10)):
