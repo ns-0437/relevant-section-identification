@@ -1,5 +1,13 @@
 # Relevant Section Identification
 
+**Live app:** <https://relevant-section-identification-qqgcuwkcmq-uc.a.run.app>
+**Source:** <https://github.com/ns-0437/relevant-section-identification>
+
+> **First load may take ~75 seconds.** The service scales to zero and downloads
+> the embedding model on a cold start; after that queries return in well under a
+> second. The first chat answer additionally pulls a 3 GB model (~2 min). If it
+> looks stuck, it isn't — see [Deployment](#deployment).
+
 Given a PDF and a natural-language query, identify the **pages and section
 headings** that contain the information needed to answer it.
 
@@ -163,6 +171,63 @@ python eval_v2.py --collection max77751_v3 --by-kind
 ```
 
 ---
+
+## Deployment
+
+Deployed to **Google Cloud Run** (`us-central1`, project `rsi-demo-0437`) from the
+`Dockerfile` in this repo, with CI/CD in `.github/workflows/deploy.yml`.
+
+| | |
+|---|---|
+| URL | <https://relevant-section-identification-qqgcuwkcmq-uc.a.run.app> |
+| Instance | 1 × 4 vCPU / 16 GiB, scales to zero |
+| Secrets | `HF_TOKEN` injected from Secret Manager at runtime — never in the image or repo |
+| CI | unit tests on every push and PR; deploy only on push to `main` |
+
+Measured against the live service:
+
+| | |
+|---|---|
+| Query, warm | **0.54 – 0.67 s** |
+| Query, cold | 74 s (includes a 1.26 GB model download) |
+| Chat, cold | 137 s (3.1 GB download + CPU generation) |
+| `/api/pdf/sample` | 1,819,441 bytes, byte-identical to the source |
+
+### Known limits of the deployed instance
+
+These are properties of the deployment, not of the pipeline:
+
+- **Cold starts.** Model weights are not baked into the image, so a reclaimed
+  instance re-downloads them. Warm the URL before demoing.
+- **Chat is slow.** A 1.5B model in fp32 on 4 vCPUs. Correct, not fast.
+- **Uploading a new PDF will not finish in the cloud.** Parsing plus figure
+  captioning is ~20 minutes of CPU on a background thread with no request holding
+  the instance open, so Cloud Run can reclaim it mid-index. Upload works locally;
+  the cloud demo path is the pre-indexed sample. Fixing this properly needs a job
+  queue (Cloud Tasks + a Cloud Run Job), which is out of scope here.
+
+### Cost, and how to stop it
+
+Compute is effectively free at demo volumes — Cloud Run's monthly free tier covers
+roughly 6 hours of request time at this instance size, and a full review session
+is a few minutes. The standing cost is image storage.
+
+| | approx / month |
+|---|---|
+| Artifact Registry (~4.3 GB image, 0.5 GB free) | $0.38 |
+| Secret Manager (1 secret version) | $0.06 |
+| Cloud Run compute, light use | $0 (within free tier) |
+| **Total idle** | **≈ $0.44 (~₹40)** |
+
+To stop all charges once the review is done:
+
+```bash
+gcloud run services delete relevant-section-identification --region us-central1 --project rsi-demo-0437
+```
+
+```bash
+gcloud artifacts repositories delete cloud-run-source-deploy --location us-central1 --project rsi-demo-0437
+```
 
 ## Layout
 

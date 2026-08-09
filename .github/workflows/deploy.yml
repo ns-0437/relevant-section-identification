@@ -61,6 +61,8 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
+      # 2 instances x 16Gi = 32Gi, which fits the 40Gi MemAllocPerProjectRegion
+      # quota for us-central1. 3 instances is rejected at validation time.
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy "$SERVICE" \
@@ -72,7 +74,7 @@ jobs:
             --cpu 4 \
             --timeout 900 \
             --concurrency 4 \
-            --max-instances 3 \
+            --max-instances 2 \
             --set-secrets "HF_TOKEN=hf-token:latest" \
             --quiet
 

@@ -1,7 +1,10 @@
 # PDF → Multimodal Retrieval Index
 
 **Technical report**
-Date: 2026-08-07 · Author: Navin Kumar
+Author: Navin Kumar
+
+**Live app:** <https://relevant-section-identification-qqgcuwkcmq-uc.a.run.app>
+**Source:** <https://github.com/ns-0437/relevant-section-identification>
 
 ---
 
@@ -523,6 +526,53 @@ that figure captioning is now the binding constraint on retrieval quality.
 
 ---
 
+## 7b. Application and deployment
+
+### The served output
+
+The task asks for pages and, optionally, section headings. The API returns exactly
+that: chunk hits are collapsed to a ranked page list (first occurrence of each page
+wins), each page carries the section headings of the chunks that matched, plus the
+evidence snippets that caused the match. Pages scoring within 55% of the best page
+are returned, capped at 8 — a fixed top-k would be wrong in both directions, since
+"all relevant pages" varies per query.
+
+The UI puts a PDF.js viewer beside the query panel; selecting a result opens that
+page. A second tab answers in prose from the retrieved pages using a local
+`Qwen/Qwen2.5-1.5B-Instruct`, with clickable page citations (the bonus task).
+
+### Deployment
+
+Cloud Run, `us-central1`, 1 instance × 4 vCPU / 16 GiB, scaling to zero.
+`HF_TOKEN` is injected from Secret Manager at runtime and appears in neither the
+image nor the repository. CI runs the unit tests on every push and pull request
+and deploys only on pushes to `main`, so a fork PR can never reach the
+credentials.
+
+Measured against the live URL:
+
+| | |
+|---|---|
+| Query, warm | 0.54 – 0.67 s |
+| Query, cold | 74 s (1.26 GB model download) |
+| Chat, cold | 137 s (3.1 GB download + CPU generation) |
+| Reference query result | p17 first at 0.922, matching local exactly |
+| Chat answer | "The charger supports Li-ion and Li-Polymer batteries." (p17, p19) |
+
+Three deployment limits, all properties of the hosting rather than the pipeline:
+cold starts re-download weights because they are not baked into the image; chat
+runs a 1.5B model in fp32 on CPU and is correspondingly slow; and uploading a new
+PDF does not complete in the cloud, because ~20 minutes of indexing happens on a
+background thread with no request holding the instance alive. Upload works
+locally. Fixing it properly needs a job queue rather than a flag.
+
+An earlier deployment to a Google Workspace organization had to be abandoned:
+`constraints/iam.allowedPolicyMemberDomains` restricts every IAM principal to the
+Workspace customer, which blocks not only `allUsers` but any external reviewer
+account, and the constraint is only changeable at the organization level.
+
+---
+
 ## 8. Reproduction
 
 ```bash
@@ -575,12 +625,35 @@ and `--tables-from ocr` reproduce the v1 behaviour for comparison.
 
 ## 10. Next steps
 
-1. **Cross-encoder reranking** over the top-k fused candidates, measured against
-   this gold set with the holdout intact. This is the next planned step now that
-   the text the reranker would read is no longer corrupted.
-2. Address figure captioning (§7.1, §7.7) — now the binding constraint. Either
-   lead image chunks with OCR keywords, or drop captions where OCR found nothing.
+Both items originally listed here — cross-encoder reranking and the figure-caption
+rebuild — have since been done. Reranking was measured and rejected (§5.6); the
+caption rebuild was adopted and is the v3 build (§4.4). What remains:
+
+1. **Bake model weights into the image** so cold starts don't re-download 4.4 GB.
+   Needs a `cloudbuild.yaml` with build-time secret plumbing.
+2. **Move indexing to a job queue** (Cloud Tasks + Cloud Run Job) so PDF upload
+   completes in the cloud rather than only locally.
 3. Resolve the overlap/markdown conflict for table chunks (§7.4).
-4. Obtain queries authored by someone who has not seen the chunks (§7.6).
+4. Obtain queries authored by someone who has not seen the chunks (§7.6) — the
+   single biggest weakness in the numbers reported here.
 5. Exercise table splitting against a document containing a table over 5000
-   characters (§7.5).
+   characters (§7.5), which this document never triggers.
+6. Detect header rows rather than assuming row 0 (§7.3).
+
+---
+
+## 11. Summary of what moved the numbers
+
+| change | Δ nDCG@5 | verdict |
+|---|---|---|
+| Table text from the PDF text layer + boilerplate stripping | **+0.065** | adopted |
+| Image chunks rebuilt (figure caption first, generated caption trimmed) | **+0.012** | adopted |
+| Section expansion via `title` | +0.006 | adopted |
+| HyDE (Qwen2.5-1.5B) | −0.026 | rejected |
+| Metadata scoring channel | −0.006 | rejected |
+| Cross-encoder reranking (best blend, two index builds) | −0.001 | rejected |
+
+Three techniques that reweight signal already present in the index contributed
++0.006 between them. Two changes that repaired what the index *contained*
+contributed +0.077. On this document, retrieval quality was never a ranking
+problem — it was an extraction problem that looked like one.
