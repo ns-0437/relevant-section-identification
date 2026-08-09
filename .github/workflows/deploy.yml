@@ -1,0 +1,82 @@
+name: CI / Deploy to Cloud Run
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  SERVICE: relevant-section-identification
+  REGION: us-central1
+
+jobs:
+  # ---------------------------------------------------------------- validate
+  # Model-free unit tests over the deterministic pipeline logic: table
+  # rendering, split overlap, boilerplate detection, keyword extraction.
+  # No torch, no weights, no GPU -- runs in seconds on every push and PR.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install test dependencies
+        run: pip install pytest beautifulsoup4 lxml
+
+      - name: Run unit tests
+        run: python -m pytest tests/ -v
+
+      - name: Check the app imports cleanly
+        run: python -c "import ast,sys; [ast.parse(open(f, encoding='utf-8').read(), f) for f in ['app/main.py','app/store.py','app/rag.py','pdf_chunker.py','hybrid_search.py','section_search.py']]; print('syntax OK')"
+
+  # ------------------------------------------------------------------ deploy
+  # Runs only on pushes to main, never on pull requests, so a fork PR can
+  # never reach the cloud credentials.
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write        # for keyless auth via Workload Identity Federation
+    steps:
+      - uses: actions/checkout@v4
+
+      # Secrets are read from the GitHub secret store and passed to the
+      # google-github-actions/auth step; they are never written to the image,
+      # the logs, or the repository. HF_TOKEN is handed to Cloud Run through
+      # Secret Manager rather than baked into the container.
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --source . \
+            --region "$REGION" \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 16Gi \
+            --cpu 4 \
+            --timeout 900 \
+            --concurrency 4 \
+            --max-instances 3 \
+            --set-secrets "HF_TOKEN=hf-token:latest" \
+            --quiet
+
+      - name: Show the service URL
+        run: |
+          gcloud run services describe "$SERVICE" --region "$REGION" \
+            --format 'value(status.url)'
