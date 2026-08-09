@@ -623,7 +623,45 @@ and `--tables-from ocr` reproduce the v1 behaviour for comparison.
 
 ---
 
-## 10. Next steps
+## 10. Deployment
+
+Deployed as a web application on **Google Cloud Run**.
+
+| | |
+|---|---|
+| URL | <https://relevant-section-identification-qqgcuwkcmq-uc.a.run.app> |
+| Project / region | `rsi-demo-0437` / `us-central1` |
+| Instance | 1 × 4 vCPU / 16 GiB, scales to zero |
+| Image | built from `Dockerfile` by Cloud Build, 0.97 GB compressed |
+| Secrets | `HF_TOKEN` injected from Secret Manager at runtime, never in the image or repo |
+| CI/CD | `.github/workflows/deploy.yml` — tests on every push and PR, deploy only on push to `main` |
+
+Verified against the live service rather than locally:
+
+| | |
+|---|---|
+| Query, warm | 0.54 – 0.67 s |
+| Query, cold | 74 s (includes a 1.26 GB model download) |
+| Chat, cold | 137 s (3.1 GB download plus CPU generation) |
+| `/api/pdf/sample` | 1,819,441 bytes, byte-identical to the source |
+| Reference query | pages 17 and 19 returned first and second |
+| Chat answer | *"The charger supports Li-ion and Li-Polymer batteries."* |
+
+Three limits belong to the deployment, not the pipeline:
+
+- **Cold starts.** Weights are not baked into the image, so a reclaimed instance
+  re-downloads them. Baking them requires Cloud Build to fetch gated weights via a
+  build-time secret; judged disproportionate for a demo.
+- **Chat is slow** — a 1.5B model in fp32 on 4 vCPUs. Correct, not fast.
+- **Uploading a new PDF does not complete in the cloud.** Parsing plus figure
+  captioning is ~20 minutes of CPU on a background thread with no request holding
+  the instance open, so Cloud Run may reclaim it mid-index. Upload is a local
+  feature; the cloud demo path is the pre-indexed sample.
+
+
+---
+
+## 11. Next steps
 
 Both items originally listed here — cross-encoder reranking and the figure-caption
 rebuild — have since been done. Reranking was measured and rejected (§5.6); the
@@ -642,7 +680,7 @@ caption rebuild was adopted and is the v3 build (§4.4). What remains:
 
 ---
 
-## 11. Summary of what moved the numbers
+## 12. Summary of what moved the numbers
 
 | change | Δ nDCG@5 | verdict |
 |---|---|---|

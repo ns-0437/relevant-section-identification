@@ -206,20 +206,9 @@ These are properties of the deployment, not of the pipeline:
   the cloud demo path is the pre-indexed sample. Fixing this properly needs a job
   queue (Cloud Tasks + a Cloud Run Job), which is out of scope here.
 
-### Cost, and how to stop it
+### Tearing it down
 
-Compute is effectively free at demo volumes — Cloud Run's monthly free tier covers
-roughly 6 hours of request time at this instance size, and a full review session
-is a few minutes. The standing cost is image storage.
-
-| | approx / month |
-|---|---|
-| Artifact Registry (~4.3 GB image, 0.5 GB free) | $0.38 |
-| Secret Manager (1 secret version) | $0.06 |
-| Cloud Run compute, light use | $0 (within free tier) |
-| **Total idle** | **≈ $0.44 (~₹40)** |
-
-To stop all charges once the review is done:
+To remove the deployed service and its image:
 
 ```bash
 gcloud run services delete relevant-section-identification --region us-central1 --project rsi-demo-0437
