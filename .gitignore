@@ -21,3 +21,4 @@ chroma_dryrun/
 *.log
 .DS_Store
 Thumbs.db
+sample_v2.json
