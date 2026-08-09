@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relevant Section Identification</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<header class="bar">
+  <div class="brand">
+    <span class="mark"></span>
+    <div>
+      <h1>Relevant Section Identification</h1>
+      <p class="sub">Find the pages and section headings that answer a question</p>
+    </div>
+  </div>
+  <div class="docpick">
+    <label for="doc">Document</label>
+    <select id="doc"></select>
+    <button id="uploadBtn" class="btn">Upload PDF</button>
+    <input type="file" id="file" accept="application/pdf" hidden>
+  </div>
+</header>
+
+<div id="notice" class="notice" hidden></div>
+
+<main class="split">
+  <!-- ---------------- viewer ---------------- -->
+  <section class="pane viewer">
+    <div class="pane-head">
+      <span class="label">Viewer</span>
+      <div class="pager">
+        <button id="prev" class="btn ghost" aria-label="Previous page">&#8249;</button>
+        <span class="pageno"><input id="pageInput" type="number" min="1" value="1"> / <span id="pageCount">–</span></span>
+        <button id="next" class="btn ghost" aria-label="Next page">&#8250;</button>
+        <button id="zoomOut" class="btn ghost" aria-label="Zoom out">&minus;</button>
+        <button id="zoomIn" class="btn ghost" aria-label="Zoom in">+</button>
+      </div>
+    </div>
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="pdf"></canvas>
+      <div class="empty" id="viewerEmpty">Loading document…</div>
+    </div>
+  </section>
+
+  <!-- ---------------- query ---------------- -->
+  <section class="pane query">
+    <div class="pane-head">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="find" role="tab" aria-selected="true">Find sections</button>
+        <button class="tab" data-tab="ask" role="tab" aria-selected="false">Ask <span class="tagline">bonus</span></button>
+      </div>
+    </div>
+
+    <div class="pane-body">
+      <form id="form" class="askbox">
+        <textarea id="q" rows="2" placeholder="What battery chemistries are supported by this charger?"></textarea>
+        <button id="go" class="btn primary" type="submit">Search</button>
+      </form>
+
+      <div class="examples" id="examples">
+        <span>Try:</span>
+        <button type="button">What battery chemistries are supported by this charger?</button>
+        <button type="button">What resistor value sets the top-off current?</button>
+        <button type="button">What happens if the chip gets too hot?</button>
+        <button type="button">How can an MCU enable and disable battery charging?</button>
+      </div>
+
+      <div id="results" class="results"></div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
