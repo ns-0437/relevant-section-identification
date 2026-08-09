@@ -1,0 +1,174 @@
+# Graded relevance labels for the MAX77751 datasheet (40 pages).
+#
+#   2 = page contains a complete answer to the query
+#   1 = page contains supporting / partial information
+#
+# Authored from the SOURCE PDF page text, not from the generated chunks, so the
+# set does not simply measure whether retrieval can find text it was derived from.
+# Every label was grounded by locating the answering term on the page.
+#
+# kind:     word   - paraphrased natural language, avoids datasheet symbols
+#           symbol - queries the datasheet's own symbol names (VCHGIN_OVLO, TJREG)
+#           table  - the answer lives inside a table
+#           figure - the answer lives in a diagram or plot
+#           multi  - answer legitimately spans several sections
+#
+# holdout: true  -> excluded from any tuning decision, scored separately.
+
+queries:
+  # ---------------- word-form / paraphrased ----------------
+  - query: "What battery chemistries are supported by this charger?"
+    kind: word
+    relevant: {17: 2, 19: 2, 16: 1}
+  - query: "What is the highest input voltage the charger can operate from?"
+    kind: word
+    relevant: {1: 2, 17: 2, 20: 2, 5: 1}
+  - query: "How much current can this charger deliver to the battery?"
+    kind: word
+    relevant: {1: 2, 17: 2, 20: 2}
+  - query: "What happens if the chip gets too hot?"
+    kind: word
+    relevant: {26: 2, 27: 2, 28: 2, 7: 1}
+  - query: "How do I make the charger produce 5V for a USB accessory?"
+    kind: word
+    relevant: {27: 2, 29: 2, 20: 1, 17: 1}
+  - query: "What should I do with the USB pins if I am not using USB power?"
+    kind: word
+    holdout: true
+    relevant: {36: 2}
+  - query: "How should I lay out the printed circuit board?"
+    kind: word
+    relevant: {36: 2}
+  - query: "Which capacitor dielectric type should I use?"
+    kind: word
+    holdout: true
+    relevant: {33: 2}
+  - query: "How does the charger behave with a long high-resistance cable?"
+    kind: word
+    relevant: {22: 2, 21: 1}
+  - query: "What are the different charging stages?"
+    kind: word
+    relevant: {23: 2, 24: 2, 25: 2, 26: 2, 22: 1}
+  - query: "How does the charger decide that a power source is valid?"
+    kind: word
+    relevant: {21: 2, 22: 1}
+  - query: "What is the Smart Power Selector?"
+    kind: word
+    holdout: true
+    relevant: {20: 2, 17: 1}
+  - query: "Where do I find the part numbers to order this chip?"
+    kind: word
+    relevant: {39: 2}
+  - query: "What changed between revisions of this document?"
+    kind: word
+    holdout: true
+    relevant: {40: 2}
+  - query: "What protections does the charger provide?"
+    kind: word
+    relevant: {20: 2, 26: 1, 27: 1, 7: 1}
+
+  # ---------------- symbol lookups ----------------
+  - query: "What is VCHGIN_OVLO?"
+    kind: symbol
+    relevant: {5: 2, 9: 1, 21: 1}
+  - query: "What is IBATT_Q?"
+    kind: symbol
+    relevant: {5: 2}
+  - query: "What is the VCHGR_EN threshold?"
+    kind: symbol
+    holdout: true
+    relevant: {7: 2}
+  - query: "What does TJREG mean?"
+    kind: symbol
+    relevant: {7: 2, 27: 2, 28: 1}
+  - query: "What is VBATTREG?"
+    kind: symbol
+    relevant: {20: 2, 23: 1, 25: 1, 26: 1}
+  - query: "What are QCHGIN, QHS, QLS and QBAT?"
+    kind: symbol
+    relevant: {20: 2, 18: 1, 19: 1}
+  - query: "What is RINSD used for?"
+    kind: symbol
+    holdout: true
+    relevant: {22: 2, 19: 1}
+  - query: "What is AICL?"
+    kind: symbol
+    relevant: {21: 2, 1: 1, 17: 1}
+  - query: "What is ITO?"
+    kind: symbol
+    relevant: {7: 2, 26: 1, 32: 1}
+  - query: "What is TSHDN?"
+    kind: symbol
+    holdout: true
+    relevant: {26: 2, 23: 1}
+
+  # ---------------- table lookups ----------------
+  - query: "Which resistance value gives a 3150mA fast-charge current?"
+    kind: table
+    relevant: {32: 2}
+  - query: "What resistor gives a 350mA top-off current?"
+    kind: table
+    relevant: {32: 2}
+  - query: "Which inductor manufacturers and part numbers are recommended?"
+    kind: table
+    holdout: true
+    relevant: {37: 2}
+  - query: "What does the STAT pin output during each charging state?"
+    kind: table
+    relevant: {37: 2, 15: 1, 8: 1}
+  - query: "What proprietary charger types can be detected?"
+    kind: table
+    relevant: {29: 2}
+  - query: "What are the USB BC1.2 charger types and their current limits?"
+    kind: table
+    relevant: {29: 2, 31: 1}
+  - query: "What capacitance is recommended for BYP, SYS, VDD and PVL?"
+    kind: table
+    holdout: true
+    relevant: {33: 2, 16: 1}
+  - query: "What is the battery termination voltage of each ordering option?"
+    kind: table
+    relevant: {39: 2}
+  - query: "What is the package thermal resistance from junction to ambient?"
+    kind: table
+    relevant: {4: 2, 3: 1}
+  - query: "What is the absolute maximum voltage rating on the CHGIN pin?"
+    kind: table
+    relevant: {3: 2}
+
+  # ---------------- figures ----------------
+  - query: "What does the simplified block diagram show?"
+    kind: figure
+    relevant: {2: 2, 18: 1}
+  - query: "Where does the charge timer sit in the functional diagram?"
+    kind: figure
+    holdout: true
+    relevant: {19: 2, 18: 1}
+  - query: "What does the charger state transition diagram look like?"
+    kind: figure
+    relevant: {23: 2}
+  - query: "How does charge current vary with junction temperature?"
+    kind: figure
+    relevant: {28: 2, 27: 1}
+  - query: "What does the typical application circuit look like?"
+    kind: figure
+    relevant: {38: 2}
+  - query: "What is the pin configuration of the package?"
+    kind: figure
+    holdout: true
+    relevant: {15: 2}
+
+  # ---------------- multi-section ----------------
+  - query: "How can an MCU enable and disable battery charging?"
+    kind: multi
+    relevant: {34: 2, 35: 2, 15: 1}
+  - query: "How is battery temperature managed with an external circuit?"
+    kind: multi
+    holdout: true
+    relevant: {34: 2, 35: 2}
+  - query: "What are the CC detection thresholds and what do they control?"
+    kind: multi
+    relevant: {9: 2, 30: 2}
+  - query: "How do I set the input current limit without USB negotiation?"
+    kind: multi
+    relevant: {31: 2, 36: 1}
