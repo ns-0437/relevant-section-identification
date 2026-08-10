@@ -281,13 +281,59 @@ and `--tables-from ocr` reproduce the earlier behaviour for comparison, and
 
 ## Deployment
 
-Deployed to **Google Cloud Run** (`us-central1`) from the `Dockerfile` in this repo,
-with CI/CD in `.github/workflows/deploy.yml`: tests run on every push and pull
-request, and deployment happens only on pushes to `main`, so a fork's pull request
-can never reach the cloud credentials. The HuggingFace token is injected from Secret
-Manager at runtime and appears in neither the image nor the repository.
+**Live URL:** <https://relevant-section-identification-qqgcuwkcmq-uc.a.run.app>
+**CI/CD configuration:** [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
 
-The instance is 4 vCPU / 16 GiB and scales to zero.
+### Why Cloud Run
+
+The app is a single stateless container that is idle almost all the time and needs
+a lot of memory when it does run — roughly 8 GB once the embedding model and the
+chat model are both resident. That combination decided the platform:
+
+- **Scale-to-zero matters more than warm latency here.** A demo gets opened a
+  handful of times. Cloud Run bills only while a request is in flight, so an idle
+  month costs cents; a VM or a Kubernetes node would bill continuously for capacity
+  nobody is using.
+- **16 GiB on a serverless runtime.** AWS Lambda caps at 10 GB and adds a 250 MB
+  unzipped package limit that a torch-based image cannot meet. App Engine standard
+  cannot run arbitrary system binaries, and this app needs `tesseract` and
+  `poppler`. Cloud Run takes an ordinary container with whatever `apt` packages it
+  needs and allows up to 32 GiB.
+- **Build without local Docker.** `gcloud run deploy --source` hands the Dockerfile
+  to Cloud Build, so CI never needs a Docker daemon and no multi-gigabyte image
+  crosses a home connection.
+- **Secret Manager integration is native.** `--set-secrets` mounts the HuggingFace
+  token as an environment variable at runtime, so the gated model can be downloaded
+  without the token ever entering the image, the repository or the build logs.
+
+The trade-off accepted: no GPU. That is deliberate rather than a compromise —
+[benchmarking](#performance) showed a GPU speeds up *indexing* about 7x and makes
+no measurable difference at *query* time, and the deployed service only ever
+queries a pre-built index.
+
+### What the pipeline does
+
+| Requirement | How it is met |
+|---|---|
+| Deployed to a cloud resource | Cloud Run service in `us-central1`, image built by Cloud Build |
+| Automated deployment on push | `deploy` job triggers on push to `main` |
+| Build / test / validation step | `test` job runs 15 unit tests; `deploy` has `needs: test`, so a failing test blocks the release |
+| Secure handling of secrets | `HF_TOKEN` from Secret Manager at runtime; GCP service-account key in GitHub Actions secrets; nothing sensitive in the image or repo |
+| Working application URL | above, publicly reachable without authentication |
+
+Pull requests run the tests but never the deploy job, so a fork's PR cannot reach
+the cloud credentials. The instance is 4 vCPU / 16 GiB and scales to zero.
+
+### Deployment assumptions
+
+- A single instance is enough for review traffic, so `max-instances` is 1 and
+  concurrency is 4.
+- Cold starts are acceptable in exchange for zero idle cost. Keeping an instance
+  warm would cost roughly a thousand times more per month than this service does.
+- Model weights are downloaded at runtime rather than baked into the image, keeping
+  it at 0.97 GB compressed at the cost of a slow first request.
+- The prebuilt sample index is committed to the repository so the deployed app is
+  useful immediately, without a 20-minute indexing run on startup.
 
 Three limits belong to the deployment rather than the pipeline:
 
