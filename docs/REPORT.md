@@ -239,17 +239,62 @@ The text-chunk count falls because 226 boilerplate elements no longer pad out th
 prose stream. Pages 1–40, all 40 distinct pages represented in both.
 Outputs: `sample_full.json` (v1), `sample_v2.json` (v2).
 
-### 5.2 Runtime
+### 5.2 Runtime, latency and hardware
 
-| Stage | Time |
+Measured with `benchmark.py` on the machine in section 3 (RTX 3050 Laptop, 4 GB
+VRAM; 16 logical CPU cores) and against the deployed Cloud Run instance
+(4 vCPU / 16 GiB, no GPU).
+
+**Index-building** — paid once per document, cached thereafter.
+
+| Stage | GPU | CPU | Speed-up |
+|---|---|---|---|
+| `hi_res` partition, 40 pages | — | ~15 min | none — see note |
+| Figure captioning, 46 images (LLaVA 0.5B) | ~4 min (5.2 s/image) | 193 s **per image** | ~37x |
+| Embedding 104 chunks (EmbeddingGemma-300m) | **9.9 s** (95 ms/chunk, 10.5/s) | 71.3 s (685 ms/chunk, 1.5/s) | **7.2x** |
+| Model load, EmbeddingGemma | 17.6 s | 10.3 s | — |
+
+Partitioning does not benefit from the GPU: `unstructured`'s layout model runs
+through the CPU build of `onnxruntime`, so the 15 minutes is CPU-bound regardless
+of what hardware is present.
+
+**Query-time latency** — median over 8 queries, whole collection scored.
+
+| Component | GPU | CPU |
+|---|---|---|
+| Vector search (encode query + cosine over 104) | 111.2 ms | 121.1 ms |
+| Keyword search (BM25) | 0.0 ms | 1.0 ms |
+| Normalise and fuse | 0.0 ms | 0.0 ms |
+| **End to end, in process** | **116.9 ms** | **119.2 ms** |
+
+**The GPU buys nothing at query time.** Encoding one short query string dominates,
+and the cosine against 104 vectors is trivial either way — 117 ms versus 119 ms is
+noise. BM25 costs a millisecond. This is the measurement that justifies deploying
+to CPU-only Cloud Run: the GPU matters when *building* an index, not when serving
+one.
+
+**Deployed latency**, measured against the live service:
+
+| | Time |
 |---|---|
-| `hi_res` partition (40 pages, CPU) | ~15 min — cached thereafter via `--cache-dir` |
-| Captioning 46 images (RTX 3050) | ~4 min |
-| Captioning, CPU, for comparison | 193 s for a **single** image |
-| Embedding 118 chunks | ~15 s |
+| Search, warm | 0.5 – 0.9 s |
+| Search, cold | 66 – 77 s (downloads 1.26 GB EmbeddingGemma) |
+| Chat, warm | 33 – 55 s |
+| Chat, cold | 80 – 137 s (adds 3.1 GB Qwen download) |
+| `/api/pdf/sample` | 2.0 s for 1.8 MB |
 
-The layout model runs through `onnxruntime` (CPU build), so partitioning does not
-benefit from the GPU; only captioning does.
+The gap between 117 ms in-process and 0.5–0.9 s over HTTP is FastAPI overhead,
+JSON serialisation of the evidence snippets, and network round-trip.
+
+Chat is slow on any timescale because a 1.5B model in fp32 on 4 vCPUs spends most
+of its time on prompt processing, not generation. On the local GPU the same call
+takes ~23 s.
+
+**Memory.** EmbeddingGemma peaks at **1.89 GiB** of VRAM, which is why it fits the
+4 GB card alongside everything else. LLaVA-1.5-7B in fp16 needs roughly 14 GB and
+does not fit even in 4-bit once the vision tower and activations are resident —
+the constraint that forced the 0.5B captioner and, through it, the caption quality
+limits in section 7.1.
 
 ### 5.3 The evaluation set
 
