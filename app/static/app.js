@@ -196,6 +196,11 @@ function renderAnswer(data) {
     wrap.appendChild(cites);
   }
   box.appendChild(wrap);
+  const note = document.createElement("p");
+  note.className = "muted";
+  note.textContent = "Answered by a small local model from the cited pages — " +
+                     "check them before relying on it.";
+  box.appendChild(note);
 }
 
 async function run(ev) {

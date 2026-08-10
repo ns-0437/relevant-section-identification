@@ -118,7 +118,7 @@ def chat(body: QueryIn):
     q = body.query.strip()
     if not q:
         raise HTTPException(400, "empty query")
-    chunks = store.top_chunks(body.doc_id, q, k=4)
+    chunks = store.top_chunks(body.doc_id, q, k=6)
     if not chunks:
         return {"answer": "Nothing in this document matched the question.",
                 "citations": []}

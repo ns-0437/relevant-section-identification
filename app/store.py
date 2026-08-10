@@ -149,7 +149,7 @@ class Store:
             e["score"] = round(float(e["score"]), 4)
         return keep
 
-    def top_chunks(self, doc_id: str, query: str, k: int = 4) -> list[dict[str, Any]]:
+    def top_chunks(self, doc_id: str, query: str, k: int = 6) -> list[dict[str, Any]]:
         """Evidence chunks for the chat answer."""
         r = self.retriever(doc_id)
         scores = r.fused_scores(query, alpha=0.6, decay=0.5, max_group=4)
