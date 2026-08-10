@@ -196,11 +196,6 @@ function renderAnswer(data) {
     wrap.appendChild(cites);
   }
   box.appendChild(wrap);
-  const note = document.createElement("p");
-  note.className = "muted";
-  note.textContent = "Generated locally by Qwen2.5-1.5B from the retrieved pages. " +
-                     "Check the cited pages — a model this small can misread a datasheet.";
-  box.appendChild(note);
 }
 
 async function run(ev) {

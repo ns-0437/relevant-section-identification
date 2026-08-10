@@ -21,7 +21,7 @@ SYSTEM = (
     "You answer questions about an electronic component datasheet using only the "
     "excerpts provided. Cite the page for every claim, like (p. 17). If the "
     "excerpts do not contain the answer, say so plainly instead of guessing. "
-    "Be concise: three sentences at most."
+    "Answer in one or two short sentences."
 )
 
 
@@ -55,8 +55,11 @@ class Answerer:
             self._model.to("cpu")
         self._model.eval()
 
+    # Prompt processing dominates latency on CPU: a 1.5B model chewing through
+    # ~1200 tokens of context costs far more than the short answer it produces.
+    # Trimming the context is the single biggest lever on response time.
     @staticmethod
-    def _context(chunks: list[dict[str, Any]], budget: int = 4000) -> str:
+    def _context(chunks: list[dict[str, Any]], budget: int = 2200) -> str:
         out, used = [], 0
         for c in chunks:
             head = f"[page {c['page']}" + (f" - {c['title']}" if c["title"] else "") + "]"
@@ -73,7 +76,7 @@ class Answerer:
         return "\n\n".join(out)
 
     def answer(self, query: str, chunks: list[dict[str, Any]],
-               max_new_tokens: int = 220) -> str:
+               max_new_tokens: int = 150) -> str:
         import torch
 
         with self._lock:
