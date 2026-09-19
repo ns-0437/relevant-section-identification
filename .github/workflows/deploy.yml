@@ -11,6 +11,9 @@ env:
   SERVICE: relevant-section-identification
   REGION: us-central1
 
+permissions:
+  contents: read
+
 jobs:
   # ---------------------------------------------------------------- validate
   # Model-free unit tests over the deterministic pipeline logic: table
