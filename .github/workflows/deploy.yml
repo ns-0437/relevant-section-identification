@@ -22,7 +22,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v5
         with:
@@ -51,7 +51,7 @@ jobs:
       contents: read
       id-token: write        # for keyless auth via Workload Identity Federation
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Secrets are read from the GitHub secret store and passed to the
       # google-github-actions/auth step; they are never written to the image,
