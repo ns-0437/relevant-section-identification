@@ -5,7 +5,7 @@ unstructured[pdf]>=0.18.32
 unstructured-inference>=0.7.36
 pdf2image>=1.17.0          # needs the poppler binaries (see SETUP.md)
 pikepdf>=9.0.0
-pypdf>=4.2.0
+pypdf>=6.19.0
 
 # ---------------------------------------------------------------------------
 # Local captioning: LLaVA via transformers
