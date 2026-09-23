@@ -15,7 +15,7 @@ torch>=2.2.0
 transformers>=4.44.0       # >=4.44 for processor.apply_chat_template on LLaVA
 accelerate>=0.30.0         # required for device_map="auto"
 sentencepiece>=0.2.0
-protobuf>=4.25.0
+protobuf>=7.36.2
 safetensors>=0.8.0
 
 # Optional: 4-bit quantized LLaVA (--load-in-4bit). CUDA only.
