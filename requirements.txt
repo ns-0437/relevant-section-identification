@@ -58,7 +58,7 @@ PyYAML>=6.0                # eval_gold.yaml
 # Web app (app/)
 # ---------------------------------------------------------------------------
 fastapi>=0.115.0
-uvicorn[standard]>=0.30.0
+uvicorn[standard]>=0.53.0
 python-multipart>=0.0.32    # PDF upload
 # The bonus chat answers with Qwen/Qwen2.5-1.5B-Instruct, pulled at runtime by
 # transformers -- no extra dependency, no API key.
