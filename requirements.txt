@@ -52,7 +52,7 @@ chromadb>=1.0.0
 # Retrieval + evaluation
 # ---------------------------------------------------------------------------
 rank-bm25>=0.2.2           # sparse half of the hybrid retriever
-PyYAML>=6.0                # eval_gold.yaml
+PyYAML>=6.0.3                # eval_gold.yaml
 
 # ---------------------------------------------------------------------------
 # Web app (app/)
