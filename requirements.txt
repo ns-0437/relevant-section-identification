@@ -24,7 +24,7 @@ safetensors>=0.8.0
 # ---------------------------------------------------------------------------
 # OCR + keyword extraction
 # ---------------------------------------------------------------------------
-pytesseract>=0.3.10        # needs the tesseract binary (see SETUP.md)
+pytesseract>=0.3.13        # needs the tesseract binary (see SETUP.md)
 pillow>=10.3.0
 nltk>=3.8.1                # stopwords corpus; falls back to a built-in list
 
