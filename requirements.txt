@@ -32,7 +32,7 @@ nltk>=3.8.1                # stopwords corpus; falls back to a built-in list
 # Table HTML -> markdown
 # ---------------------------------------------------------------------------
 beautifulsoup4>=4.12.3
-lxml>=5.2.0
+lxml>=6.1.3
 
 # ---------------------------------------------------------------------------
 # Table extraction from the PDF text layer (much better than OCR on digital PDFs)
