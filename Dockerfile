@@ -4,7 +4,7 @@
 # image to a manageable size and lets the container pass Cloud Run's startup
 # probe immediately (uvicorn binds the port straight away; the embedding model
 # loads lazily on the first query).
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
